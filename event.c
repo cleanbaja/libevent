@@ -68,6 +68,7 @@
 #include "log-internal.h"
 #include "evmap-internal.h"
 #include "iocp-internal.h"
+#include "iouring-internal.h"
 #include "changelist-internal.h"
 #define HT_NO_CACHE_HASH_VALUES
 #include "ht-internal.h"
@@ -744,6 +745,11 @@ event_base_new_with_config(const struct event_config *cfg)
 		event_base_start_iocp_(base, cfg->n_cpus_hint);
 #endif
 
+#ifdef EVENT__HAVE_IOURING
+	if (cfg && (cfg->flags & EVENT_BASE_FLAG_STARTUP_IOURING))
+		event_base_start_iouring_(base);
+#endif
+
 	/* initialize watcher lists */
 	for (i = 0; i < EVWATCH_MAX; ++i)
 		TAILQ_INIT(&base->watchers[i]);
@@ -779,6 +785,37 @@ event_base_stop_iocp_(struct event_base *base)
 	rv = event_iocp_shutdown_(base->iocp, -1);
 	EVUTIL_ASSERT(rv >= 0);
 	base->iocp = NULL;
+#endif
+}
+
+int
+event_base_start_iouring_(struct event_base *base)
+{
+#ifdef EVENT__HAVE_IOURING
+	if (base->uring)
+		return 0;
+	base->uring = event_iouring_create_();
+	if (!base->uring) {
+		event_warnx("%s: Couldn't create IO Uring", __func__);
+		return -1;
+	}
+	return 0;
+#else
+	return -1;
+#endif
+}
+
+void
+event_base_stop_iouring_(struct event_base *base)
+{
+#ifdef EVENT__HAVE_IOURING
+	int rv;
+
+	if (!base->uring)
+		return;
+	rv = event_iouring_shutdown_(base->uring);
+	EVUTIL_ASSERT(rv >= 0);
+	base->uring = NULL;
 #endif
 }
 
@@ -868,6 +905,10 @@ event_base_free_(struct event_base *base, int run_finalizers)
 
 #ifdef _WIN32
 	event_base_stop_iocp_(base);
+#endif
+
+#ifdef EVENT__HAVE_IOURING
+	event_base_stop_iouring_(base);
 #endif
 
 	/* threading fds if we have them */

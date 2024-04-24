@@ -172,6 +172,9 @@
 /* Define to 1 if you have the `issetugid' function. */
 #cmakedefine EVENT__HAVE_ISSETUGID 1
 
+/* Define if the system has liburing */
+#cmakedefine EVENT__HAVE_IOURING 1
+
 /* Define to 1 if you have the `kqueue' function. */
 #cmakedefine EVENT__HAVE_KQUEUE 1
 

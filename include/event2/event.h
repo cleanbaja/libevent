@@ -604,6 +604,15 @@ enum event_base_config_flag {
 	 * But note, that in some edge cases signalfd() may works differently.
 	 */
 	EVENT_BASE_FLAG_USE_SIGNALFD = 0x80,
+
+   /** Linux only: enable the IO Uring dispatcher at startup
+
+	    If this flag is set then bufferevent_socket_new() and
+	    evconn_listener_new() will use linux's IO Uring API...
+
+	    Note: it is experimental feature, and has some bugs.
+	 */
+	EVENT_BASE_FLAG_STARTUP_IOURING = 0x100,
 };
 
 /**

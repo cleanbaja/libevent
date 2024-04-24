@@ -606,6 +606,17 @@ if (NOT EVENT__DISABLE_THREAD_SUPPORT)
     endif()
 endif()
 
+if ("${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "Linux")
+    find_package(LibUring REQUIRED)
+
+    if (LIBURING_FOUND)
+        list(APPEND LIB_APPS LibUring::LibUring)
+        set(EVENT__HAVE_IOURING 1)
+    else()
+        set(EVENT__HAVE_IOURING 0)
+    endif()
+endif()
+
 list(APPEND CMAKE_EXTRA_INCLUDE_FILES ${EVENT_INCLUDES} stdio.h)
 CHECK_SYMBOLS_EXIST("${SYMBOLS_TO_CHECK}" "${CMAKE_EXTRA_INCLUDE_FILES}" "EVENT")
 unset(SYMBOLS_TO_CHECK)
@@ -850,6 +861,7 @@ set(HDR_PRIVATE
     ht-internal.h
     http-internal.h
     iocp-internal.h
+    iouring-internal.h
     ipv6-internal.h
     log-internal.h
     minheap-internal.h
@@ -935,6 +947,10 @@ endif()
 
 if(EVENT__HAVE_EPOLL)
     list(APPEND SRC_CORE epoll.c)
+endif()
+
+if(EVENT__HAVE_IOURING)
+    list(APPEND SRC_CORE event_iouring.c)
 endif()
 
 if(EVENT__HAVE_SIGNALFD)
@@ -1442,7 +1458,6 @@ if (NOT EVENT__DISABLE_TESTS)
         list(APPEND BACKENDS WIN32)
     endif()
 
-
     # Default environment variables turns off all event systems,
     # then we enable each one, one at a time when creating the tests.
     set(DEFAULT_TEST_ENV_VARS)
@@ -1614,7 +1629,7 @@ if (NOT EVENT__DISABLE_TESTS)
         file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/tmp/verify_tests.sh
             "
             #!/bin/bash
-            unset EVENT_NOEPOLL; unset EVENT_NOPOLL; unset EVENT_NOSELECT; unset EVENT_NOWIN32; unset EVENT_NOEVPORT; unset EVENT_NOKQUEUE; unset EVENT_NODEVPOLL
+            unset EVENT_NOEPOLL; unset EVENT_NOPOLL; unset EVENT_NOSELECT; unset EVENT_NOWIN32; unset EVENT_NOEVPORT; unset EVENT_NOKQUEUE; unset EVENT_NODEVPOLL;
             ${CMAKE_CTEST_COMMAND}
             ")
 

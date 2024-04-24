@@ -366,6 +366,11 @@ struct event_base {
 	struct event_iocp_port *iocp;
 #endif
 
+#ifdef EVENT__HAVE_IOURING
+	/** IO Uring support structure, if IO Uring is enabled. */
+	struct event_io_ring *uring;
+#endif
+
 	/** Flags that this base was configured with */
 	enum event_base_config_flag flags;
 
