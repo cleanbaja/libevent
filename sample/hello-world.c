@@ -41,6 +41,8 @@ main(int argc, char **argv)
 	struct event_base *base;
 	struct evconnlistener *listener;
 	struct event *signal_event;
+	struct event_config *cfg;
+
 
 	struct sockaddr_in sin = {0};
 #ifdef _WIN32
@@ -48,11 +50,29 @@ main(int argc, char **argv)
 	WSAStartup(0x0201, &wsa_data);
 #endif
 
-	base = event_base_new();
+	cfg = event_config_new();
+
+	/* force iouring. */
+    event_config_set_flag(cfg, EVENT_BASE_FLAG_STARTUP_IOURING);
+
+	base = event_base_new_with_config(cfg);
 	if (!base) {
 		fprintf(stderr, "Could not initialize libevent!\n");
 		return 1;
 	}
+
+	enum event_method_feature f;
+
+	printf("Using Libevent with backend method %s.\n",
+        event_base_get_method(base));
+    f = event_base_get_features(base);
+    if ((f & EV_FEATURE_ET))
+        printf("  Edge-triggered events are supported.\n");
+    if ((f & EV_FEATURE_O1))
+        printf("  O(1) event notification is supported.\n");
+    if ((f & EV_FEATURE_FDS))
+        printf("  All FD types are supported.\n");
+    puts("");
 
 	sin.sin_family = AF_INET;
 	sin.sin_port = htons(PORT);

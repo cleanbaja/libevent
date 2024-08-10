@@ -5,6 +5,8 @@
 extern "C" {
 #endif
 
+#ifdef EVENT__HAVE_IOURING
+
 #include <liburing.h>
 
 struct event_io_ring {
@@ -32,6 +34,8 @@ struct event_io_ring *event_iouring_create_(void);
  */
 EVENT2_EXPORT_SYMBOL
 int event_iouring_shutdown_(struct event_io_ring *uring);
+
+#endif
 
 #ifdef __cplusplus
 }

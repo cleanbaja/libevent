@@ -64,6 +64,7 @@
 #include "bufferevent-internal.h"
 #include "util-internal.h"
 #include "iocp-internal.h"
+#include "iouring-internal.h"
 
 #ifndef SO_UPDATE_CONNECT_CONTEXT
 /* Mingw is sometimes missing this */
@@ -545,6 +546,8 @@ bufferevent_async_new_(struct event_base *base,
 {
 	struct bufferevent_async *bev_a;
 	struct bufferevent *bev;
+
+#ifdef _WIN32
 	struct event_iocp_port *iocp;
 
 	options |= BEV_OPT_THREADSAFE;
@@ -556,6 +559,7 @@ bufferevent_async_new_(struct event_base *base,
 		if (fatal_error(GetLastError()))
 			return NULL;
 	}
+#endif
 
 	if (!(bev_a = mm_calloc(1, sizeof(struct bufferevent_async))))
 		return NULL;

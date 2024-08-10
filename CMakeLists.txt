@@ -950,7 +950,9 @@ if(EVENT__HAVE_EPOLL)
 endif()
 
 if(EVENT__HAVE_IOURING)
-    list(APPEND SRC_CORE event_iouring.c)
+    list(APPEND SRC_CORE 
+        event_iouring.c
+        bufferevent_async.c)
 endif()
 
 if(EVENT__HAVE_SIGNALFD)
